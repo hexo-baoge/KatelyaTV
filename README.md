@@ -9,6 +9,7 @@
   <p>
     <a href="#部署">🚀 部署</a> ·
     <a href="#功能特性">✨ 功能</a> ·
+    <a href="#方案四vercel-部署免服务器支持多用户">☁️ Vercel+Upstash</a> ·
     <a href="#docker">🐳 Docker</a> ·
     <a href="#环境变量">⚙️ 配置</a>
   </p>
@@ -40,7 +41,7 @@
 ### 🚀 部署与扩展
 
 - **🐳 Docker 一键部署**：提供完整的 Docker 镜像，开箱即用
-- **☁️ 多平台支持**：Vercel、Cloudflare Pages、传统服务器全兼容
+- **☁️ 多平台支持**：Vercel + Upstash、Docker + Redis、Cloudflare Pages + D1、传统服务器全兼容
 - **🔧 灵活配置**：支持自定义资源站、代理设置、主题配置
 - **📱 PWA 支持**：可安装为桌面/手机应用，离线缓存
 - **📺 TVBox 兼容**：支持 TVBox 配置接口，可导入到各种电视盒子应用
@@ -62,7 +63,7 @@
 | 播放器    | [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) · [HLS.js](https://github.com/video-dev/hls.js/) |
 | 状态管理  | React Hooks · Context API                                                                             |
 | 代码质量  | ESLint · Prettier · Jest · Husky                                                                      |
-| 部署      | Docker · Vercel · CloudFlare pages                                                                    |
+| 部署      | Docker · Vercel · CloudFlare pages · Upstash                                                          |
 
 ## 📺 TVBox 兼容功能
 
@@ -95,19 +96,39 @@ KatelyaTV 新增了 TVBox 配置接口，可以将您的视频源导入到各种
 
 > **💡 推荐方案**：
 >
-> - 🆕 **个人用户**：优先选择 **Docker 单容器**（最简单）
-> - 🏠 **家庭/团队**：选择 **Docker + Redis**（功能完整）
+> - 🆕 **个人用户**：优先选择 **Vercel + Upstash**（免费 + 多用户 + 同步）
+> - 🏠 **进阶用户**：选择 **Docker + Redis**（自托管 + 功能完整）
 > - 🏢 **生产环境**：强烈推荐 **Docker + Kvrocks**（极高可靠性，零数据丢失风险）
 
 ### 📋 部署方式对比
 
-| 方式                    | 难度   | 成本     | 多用户 | 数据可靠性 | 推荐场景            |
-| ----------------------- | ------ | -------- | ------ | ---------- | ------------------- |
-| 🐳 **Docker 单容器**    | ⭐     | 需服务器 | ❌     | ⭐⭐       | 个人使用，最简单    |
-| 🐳 **Docker + Redis**   | ⭐⭐   | 需服务器 | ✅     | ⭐⭐⭐     | 家庭/团队，功能完整 |
-| 🏪 **Docker + Kvrocks** | ⭐⭐   | 需服务器 | ✅     | ⭐⭐⭐⭐⭐ | 生产环境，高可靠性  |
-| ☁️ **Vercel**           | ⭐     | 免费     | ❌     | ⭐         | 临时体验，无服务器  |
-| 🌐 **Cloudflare**       | ⭐⭐⭐ | 免费     | ✅     | ⭐⭐⭐     | 技术爱好者          |
+| 方式                    | 难度   | 成本     | 多用户 | 数据可靠性 | 配置文件                                              | 推荐场景                    |
+| ----------------------- | ------ | -------- | ------ | ---------- | ----------------------------------------------------- | --------------------------- |
+| 🐳 **Docker 单容器**    | ⭐     | 需服务器 | ❌     | ⭐⭐       | 无需配置文件                                          | 个人使用，最简单            |
+| 🐳 **Docker + Redis**   | ⭐⭐   | 需服务器 | ✅     | ⭐⭐⭐     | `docker-compose.redis.yml` + `.env.redis.example`     | 家庭/团队，功能完整         |
+| 🏪 **Docker + Kvrocks** | ⭐⭐   | 需服务器 | ✅     | ⭐⭐⭐⭐⭐ | `docker-compose.kvrocks.yml` + `.env.kvrocks.example` | 生产环境，高可靠性          |
+| ☁️ **Vercel（单机版）** | ⭐     | 免费     | ❌     | ⭐         | `vercel.json`                                         | 临时体验，无服务器          |
+| ☁️ **Vercel + Upstash** | ⭐⭐   | 免费     | ✅     | ⭐⭐⭐⭐   | `vercel.json` + Upstash 配置                          | **推荐**：无服务器 + 多用户 |
+| 🌐 **Cloudflare + D1**  | ⭐⭐⭐ | 免费     | ✅     | ⭐⭐⭐     | `wrangler.toml` + `.env.cloudflare.example`           | 技术爱好者                  |
+
+> **💡 快速选择指南**：
+>
+> - 🆕 **第一次部署**：选择方案一（Docker 单容器）或方案四（Vercel + Upstash）
+> - 🏠 **家庭/团队使用**：选择方案二（Docker + Redis）或方案三（Docker + Kvrocks）
+> - 🏢 **生产环境**：强烈推荐方案三（Docker + Kvrocks）
+> - 💰 **免费用户**：选择方案四（Vercel + Upstash）或方案五（Cloudflare + D1）
+
+### 🛠️ 部署状态检查
+
+在部署前，可以运行配置检查脚本验证所有文件是否完整：
+
+```bash
+# 检查所有部署方案的配置文件
+node scripts/check-deployment-configs.js
+
+# 检查 Kvrocks 部署配置
+node scripts/test-kvrocks-deployment.js
+```
 
 ---
 
@@ -159,7 +180,7 @@ docker run -d \
 
 **配置文件下载地址**: [https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
 
-**配置文件Plus下载地址**: [配置文件Plus版本【94片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
+**配置文件 Plus 下载地址**: [配置文件 Plus 版本【94 片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
 
 ##### 📋 配置步骤
 
@@ -223,144 +244,60 @@ docker rm katelyatv
 
 ### 📝 详细步骤
 
-#### 第一步：创建配置文件
-
-在你的服务器上创建一个文件夹，比如 `/opt/katelyatv`：
+#### 第一步：下载配置文件
 
 ```bash
-# 创建目录
-mkdir -p /opt/katelyatv
-cd /opt/katelyatv
+# 创建项目目录
+mkdir katelyatv-redis && cd katelyatv-redis
 
-# 创建 docker-compose.yml 文件
-cat > docker-compose.yml << 'EOF'
-version: '3.8'
+# 下载 Redis 部署配置
+curl -O https://raw.githubusercontent.com/katelya77/KatelyaTV/main/docker-compose.redis.yml
+curl -O https://raw.githubusercontent.com/katelya77/KatelyaTV/main/.env.redis.example
 
-services:
-  # KatelyaTV 主应用
-  katelyatv:
-    image: ghcr.io/katelya77/katelyatv:latest
-    container_name: katelyatv
-    ports:
-      - "3000:3000"
-    environment:
-      # 管理员账号（请修改）
-      - USERNAME=admin
-      - PASSWORD=your_strong_password
-      # 启用 Redis 存储
-      - NEXT_PUBLIC_STORAGE_TYPE=redis
-      - REDIS_URL=redis://katelyatv-redis:6379
-      # 允许用户注册（可选）
-      - NEXT_PUBLIC_ENABLE_REGISTER=true
-    depends_on:
-      katelyatv-redis:
-        condition: service_healthy
-    restart: unless-stopped
-    # 可选：挂载自定义配置
-    # volumes:
-    #   - ./config.json:/app/config.json:ro
-
-  # Redis 数据库
-  katelyatv-redis:
-    image: redis:7-alpine
-    container_name: katelyatv-redis
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - katelyatv-redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    restart: unless-stopped
-
-volumes:
-  katelyatv-redis-data:
-EOF
+# 复制环境变量模板
+cp .env.redis.example .env
 ```
 
-#### 第二步：修改配置
+> **📌 重要说明**：此配置使用预构建的 Docker 镜像，无需下载源代码。
 
-编辑 `docker-compose.yml` 文件，**必须修改**以下内容：
+#### 第二步：配置环境变量
 
-- `PASSWORD=your_strong_password` 改成你的强密码
-- `USERNAME=admin` 可以改成你喜欢的管理员用户名
+```bash
+# 编辑环境变量文件
+nano .env
+```
+
+**重要配置项**：
+
+```bash
+# 存储类型：使用 Redis
+NEXT_PUBLIC_STORAGE_TYPE=redis
+
+# 站点全局访问密码 (必填)
+PASSWORD=your_site_access_password
+
+# Redis 连接配置
+REDIS_URL=redis://katelyatv-redis:6379
+# Redis 密码配置（可选）
+# REDIS_PASSWORD=your_redis_password
+REDIS_DATABASE=0
+
+# NextAuth 配置
+NEXTAUTH_SECRET=your_nextauth_secret_here    # 改成随机字符串
+NEXTAUTH_URL=http://localhost:3000           # 改成你的域名
+```
 
 #### 第三步：启动服务
 
-```bash
-# 启动所有服务
-docker compose up -d
+````bash
+# 启动 KatelyaTV + Redis
+docker compose -f docker-compose.redis.yml up -d
 
 # 查看启动状态
-docker compose ps
-```
-
-#### 第四步：验证部署
-
-1. 访问 `http://你的服务器IP:3000`
-2. 使用你设置的用户名和密码登录
-3. 登录后访问 `http://你的服务器IP:3000/admin` 进入管理后台
-4. 在管理后台可以配置资源站、管理用户等
-
-#### 第五步：配置资源站
-
-> **📢 重要提醒**：由于项目长期稳定运行的考虑，应用户建议已移除内置视频源，需要手动配置资源站。
-
-##### 方法一：使用推荐配置文件（推荐）
-
-1. **下载配置文件**：[点击下载 config.json](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
-
-   **配置文件Plus下载地址**: [配置文件Plus版本【94片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
-
-2. **修改 docker-compose.yml**：取消注释 volumes 部分
-   ```yaml
-   # 将这两行的注释去掉
-   volumes:
-     - ./config.json:/app/config.json:ro
-   ```
-3. **重启服务**：
-   ```bash
-   docker compose down
-   docker compose up -d
-   ```
-
-##### 方法二：管理后台配置
-
-1. 登录管理后台：`http://你的服务器IP:3000/admin`
-2. 进入"站点配置"页面
-3. 手动添加视频源 API 接口
-
-### 🛠️ 管理命令
-
-```bash
-# 查看所有服务状态
-docker compose ps
+docker compose -f docker-compose.redis.yml ps
 
 # 查看日志
-docker compose logs -f
-
-# 重启所有服务
-docker compose restart
-
-# 停止所有服务
-docker compose down
-
-# 更新到最新版本
-docker compose pull
-docker compose up -d
-```
-
-### 💾 备份数据
-
-```bash
-# 备份 Redis 数据
-docker run --rm -v katelyatv-redis-data:/data -v $(pwd):/backup alpine tar czf /backup/redis-backup-$(date +%Y%m%d).tar.gz /data
-
-# 恢复数据（如果需要）
-docker run --rm -v katelyatv-redis-data:/data -v $(pwd):/backup alpine tar xzf /backup/redis-backup-20241201.tar.gz -C /
-```
-
+docker compose -f docker-compose.redis.yml logs -f
 ---
 
 ## � 方案三：Docker + Kvrocks（高可靠性推荐）
@@ -394,7 +331,7 @@ curl -O https://raw.githubusercontent.com/katelya77/KatelyaTV/main/.env.kvrocks.
 
 # 复制环境变量模板
 cp .env.kvrocks.example .env
-```
+````
 
 > **📌 重要说明**：此配置使用预构建的 Docker 镜像 (`ghcr.io/katelya77/katelyatv:latest`)，无需下载源代码。镜像会自动从 GitHub Container Registry 拉取。
 
@@ -411,9 +348,16 @@ nano .env
 # 存储类型：使用 Kvrocks
 NEXT_PUBLIC_STORAGE_TYPE=kvrocks
 
+# 站点全局访问密码 (必填)
+PASSWORD=your_site_access_password
+
 # Kvrocks 连接配置
 KVROCKS_URL=redis://kvrocks:6666
-KVROCKS_PASSWORD=your_secure_password_here  # 改成你的密码
+# 密码配置（选择以下其中一种方式）：
+# 方式1：无密码部署（开发环境推荐）
+# KVROCKS_PASSWORD=
+# 方式2：密码认证部署（生产环境推荐）
+KVROCKS_PASSWORD=your_secure_password_here
 KVROCKS_DATABASE=0
 
 # NextAuth 配置
@@ -421,25 +365,50 @@ NEXTAUTH_SECRET=your_nextauth_secret_here    # 改成随机字符串
 NEXTAUTH_URL=http://localhost:3000           # 改成你的域名
 ```
 
-#### 第三步：启动服务
+> **🚨 重要提示**：请根据您的需求选择部署方式：
+>
+> - **无密码部署**：适合开发环境，将 `KVROCKS_PASSWORD` 留空或注释掉
+> - **密码认证部署**：适合生产环境，设置强密码并使用对应的 Docker 配置
+
+#### 第三步：选择部署配置并启动
+
+**选项 A：无密码部署（开发环境）**
 
 ```bash
-# 一键启动 KatelyaTV + Kvrocks
-docker compose -f docker-compose.kvrocks.yml up -d
+# 确保环境变量中 KVROCKS_PASSWORD 未设置或为空
+# KVROCKS_PASSWORD=
 
-# 查看启动状态
-docker compose -f docker-compose.kvrocks.yml ps
+# 启动无密码配置
+docker compose -f docker-compose.kvrocks.yml up -d
+```
+
+**选项 B：密码认证部署（生产环境）**
+
+```bash
+# 确保环境变量中设置了强密码
+# KVROCKS_PASSWORD=your_secure_password_here
+
+# 启动密码认证配置
+docker compose -f docker-compose.kvrocks.auth.yml up -d
 ```
 
 #### 第四步：验证部署
 
 ```bash
-# 检查 Kvrocks 连接
-docker compose -f docker-compose.kvrocks.yml exec kvrocks redis-cli -h localhost -p 6666 ping
+# 查看启动状态
+docker compose ps
 
-# 查看日志
-docker compose -f docker-compose.kvrocks.yml logs -f
+# 检查服务日志（重要：确认无认证错误）
+docker compose logs -f
+
+# 验证 Kvrocks 连接（根据配置选择命令）
+# 无密码版本：
+docker compose exec kvrocks redis-cli -h localhost -p 6666 ping
+# 密码认证版本：
+docker compose exec kvrocks redis-cli -h localhost -p 6666 -a your_password ping
 ```
+
+> **📖 详细部署指南**：如遇到问题，请参考 [Kvrocks 部署指南](docs/KVROCKS_DEPLOYMENT.md)
 
 ### 🔧 高级选项：本地构建
 
@@ -526,9 +495,9 @@ docker compose -f docker-compose.kvrocks.yml up -d
 
 ---
 
-## �🎯 方案四：Vercel 部署（免服务器）
+## 🎯 方案四：Vercel 部署（免服务器，支持多用户）
 
-> **适合场景**：没有服务器，想要快速体验，个人使用
+> **适合场景**：没有服务器，想要快速体验，支持多用户和跨设备同步
 
 ### 🔧 前置要求
 
@@ -570,16 +539,32 @@ docker compose -f docker-compose.kvrocks.yml up -d
 
 #### 方法一：使用推荐配置（推荐）
 
-1. **下载配置文件**：[点击下载 config.json](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
+**第一步：下载配置文件**
 
-   **配置文件Plus下载地址**: [配置文件Plus版本【94片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
+选择以下任一配置文件：
 
-2. **替换仓库配置**：
-   - 在你 Fork 的仓库中找到 `config.json` 文件
-   - 点击编辑按钮（铅笔图标）
-   - 将下载的配置内容复制替换原有内容
-   - 点击 **Commit changes**
-3. **等待重新部署**：Vercel 会自动重新部署（约 1-2 分钟）
+- **基础版**: [config.json](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
+- **Plus 版**: [配置文件 Plus 版本【94 片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
+
+**第二步：获取正确的 JSON 内容**
+
+⚠️ **重要**: 请下载文件到本地，不要直接复制网页内容！
+
+1. **下载文件**: 点击 MediaFire 的 "Download" 按钮
+2. **打开文件**: 用记事本打开下载的 `.json` 文件
+3. **复制内容**: 全选并复制文件中的 JSON 内容
+
+**第三步：更新仓库配置**
+
+1. 在你 Fork 的仓库中找到 `config.json` 文件
+2. 点击编辑按钮（✏️ 铅笔图标）
+3. **删除所有原有内容**，粘贴从本地文件复制的完整 JSON 内容
+4. 确保内容格式正确（以 `{` 开头，以 `}` 结尾）
+5. 点击 **Commit changes**
+
+**第四步：等待重新部署**
+
+Vercel 会自动重新部署（约 1-2 分钟），部署成功后即可正常使用。
 
 #### 方法二：手动配置
 
@@ -591,11 +576,74 @@ docker compose -f docker-compose.kvrocks.yml up -d
 4. 点击 **Commit changes**
 5. Vercel 会自动重新部署
 
-### ⚠️ 注意事项
+### 🚀 Vercel + Upstash 多用户部署（推荐升级方案）
 
-- Vercel 版本不支持用户注册和账号系统
+如果你需要**多用户支持**和**跨设备数据同步**功能，可以配置 Upstash Redis 数据库：
+
+#### 🔧 配置步骤
+
+**第一步：创建 Upstash Redis 数据库**
+
+1. 访问 [Upstash Console](https://console.upstash.com/)
+2. 使用 GitHub 账号登录（或注册新账号）
+3. 点击 **Create Database**
+4. 配置数据库：
+   - **Name**: 输入数据库名称（如 `katelyatv-db`）
+   - **Region**: 选择离你最近的区域
+   - **Type**: 选择 **Regional**（免费版）
+5. 点击 **Create** 创建数据库
+
+**第二步：获取连接信息**
+
+1. 在数据库详情页面，找到 **REST API** 部分
+2. 复制以下信息：
+   - **UPSTASH_REDIS_REST_URL**: `https://xxx-xxx-xxx.upstash.io`
+   - **UPSTASH_REDIS_REST_TOKEN**: `AXXXXxxxxxxxxxxxxxx`
+
+**第三步：配置 Vercel 环境变量**
+
+1. 在 Vercel 项目仪表板中，进入 **Settings** → **Environment Variables**
+2. 添加以下环境变量：
+
+| Key                           | Value                            | 说明               |
+| ----------------------------- | -------------------------------- | ------------------ |
+| `NEXT_PUBLIC_STORAGE_TYPE`    | `upstash`                        | 启用 Upstash 存储  |
+| `UPSTASH_URL`                 | `https://xxx-xxx-xxx.upstash.io` | Upstash REST URL   |
+| `UPSTASH_TOKEN`               | `AXXXXxxxxxxxxxxxxxx`            | Upstash REST Token |
+| `NEXT_PUBLIC_ENABLE_REGISTER` | `true`                           | 开启用户注册       |
+| `USERNAME`                    | `admin`                          | 管理员用户名       |
+| `PASSWORD`                    | `your_admin_password`            | 管理员密码         |
+
+3. 点击 **Save** 保存配置
+
+**第四步：重新部署**
+
+1. 进入 **Deployments** 页面
+2. 点击最新部署右侧的 **···** 菜单
+3. 选择 **Redeploy** 重新部署
+
+#### ✨ 升级后的功能
+
+配置完成后，你的应用将支持：
+
+- **👥 多用户系统**: 用户可以注册独立账号
+- **🔄 跨设备同步**: 观看记录、收藏夹在所有设备间同步
+- **🛡️ 管理员功能**: 用户管理、系统配置等高级功能
+- **📊 数据持久化**: 数据存储在云端，永不丢失
+
+#### 💰 费用说明
+
+- **Upstash 免费额度**: 每月 10,000 个命令，通常足够个人/家庭使用
+- **Vercel 免费额度**: 包含 100GB 带宽和无限部署
+- **总成本**: 正常使用完全免费！
+
+### ⚠️ 单机版注意事项
+
+如果你选择不配置 Upstash（单机版）：
+
+- 不支持用户注册和账号系统
 - 观看记录保存在浏览器本地，换设备会丢失
-- 如果需要多用户功能，请考虑 Docker + Redis 方案
+- 如果需要多用户功能，强烈推荐配置 Upstash 或考虑 Docker + Redis 方案
 
 ---
 
@@ -651,20 +699,70 @@ docker compose -f docker-compose.kvrocks.yml up -d
 
 > **📢 重要提醒**：为保障项目长期稳定运行，应用户建议已移除内置视频源，需要配置资源站。
 
-##### 推荐配置方法：
+##### 📋 详细配置步骤（重要）：
 
-1. **下载配置文件**：[点击下载 config.json](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
+**第一步：下载配置文件**
 
-   **配置文件Plus下载地址**: [配置文件Plus版本【94片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
+选择以下任一配置文件下载：
 
-2. **更新仓库配置**：
-   - 回到你的 GitHub 仓库
-   - 找到 `config.json` 文件，点击编辑
-   - 用下载的内容替换原有配置
-   - 提交更改
-3. **等待自动部署**：Cloudflare Pages 会自动重新构建部署
+- **基础版**: [config.json](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
+- **Plus 版**: [配置文件 Plus 版本【94 片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
 
-🎉 **完成！现在可以正常使用影视聚合功能了**
+**第二步：验证下载的文件内容**
+
+❌ **错误做法**: 直接复制网页上显示的内容  
+✅ **正确做法**: 下载 `.json` 文件到本地，然后打开查看
+
+⚠️ **常见错误**: 如果你直接从 MediaFire 页面复制内容，可能会包含网页元素，导致 JSON 格式错误！
+
+**第三步：获取正确的 JSON 内容**
+
+1. **下载文件**: 点击 MediaFire 的 "Download" 按钮，下载 `.json` 文件到电脑
+2. **打开文件**: 用记事本或代码编辑器打开下载的 `.json` 文件
+3. **复制内容**: 选择全部内容并复制（应该以 `{` 开头，以 `}` 结尾）
+
+**第四步：更新 GitHub 仓库**
+
+1. **进入仓库**: 回到你 Fork 的 GitHub 仓库
+2. **编辑文件**: 找到 `config.json` 文件，点击 **✏️ 编辑** 按钮
+3. **替换内容**:
+   - **删除所有原有内容**
+   - **粘贴从本地文件复制的完整 JSON 内容**
+   - **确保内容以 `{` 开头，以 `}` 结尾**
+4. **验证格式**: 在提交前检查内容是否为有效的 JSON 格式
+5. **提交更改**: 填写提交信息，点击 **Commit changes**
+
+**第五步：等待自动部署**
+
+1. Cloudflare Pages 会自动检测到 GitHub 仓库的更改
+2. 等待 2-3 分钟自动重新构建和部署
+3. 部署成功后即可正常使用影视聚合功能
+
+##### 🔍 故障排除
+
+**如果遇到 "config.json 不是有效的 JSON" 错误：**
+
+1. **检查文件内容**: 确保内容是纯 JSON，没有 HTML 标签或其他字符
+2. **重新下载**: 从 MediaFire 重新下载文件，不要复制网页内容
+3. **使用 JSON 验证器**: 将内容粘贴到 [JSON 验证器](https://jsonlint.com/) 检查格式
+4. **查看构建日志**: 在 Cloudflare Pages 的部署页面查看详细错误信息
+
+**示例正确的 JSON 格式开头：**
+
+```json
+{
+  "cache_time": 7200,
+  "api_site": {
+    "example": {
+      "api": "https://example.com/api.php/provide/vod",
+      "name": "示例资源站"
+    }
+    // ... 更多配置
+  }
+}
+```
+
+🎉 **完成！配置正确后即可正常使用所有影视聚合功能了**
 
 ### 🗄️ 启用 D1 数据库（可选，支持多用户）
 
@@ -672,19 +770,21 @@ docker compose -f docker-compose.kvrocks.yml up -d
 
 > ⚠️ **升级提醒**：如果你已有 D1 数据库，需要手动添加新功能表。请查看 [D1_MIGRATION.md](./D1_MIGRATION.md) 文件。
 
-#### 第一步：创建 D1 数据库
+#### 方式一：使用 Cloudflare Dashboard（推荐）
+
+**第一步：创建 D1 数据库**
 
 1. 在 Cloudflare Dashboard 进入 **存储和数据库** → **D1 SQL 数据库**
 2. 点击 **创建数据库**，名称随意（比如 `katelyatv-db`）
 
-#### 第二步：初始化数据库
+**第二步：初始化数据库**
 
 1. 进入刚创建的数据库
 2. 点击 **Explore Data**
 3. 打开项目中的 [D1 初始化.md](https://github.com/katelya77/KatelyaTV/blob/main/D1%E5%88%9D%E5%A7%8B%E5%8C%96.md) 文件，复制所有 SQL 语句
 4. 粘贴到查询窗口，点击 **Run All**
 
-#### 第三步：绑定数据库
+**第三步：绑定数据库**
 
 1. 回到 Pages 项目设置
 2. 进入 **绑定** → **添加绑定**
@@ -692,7 +792,7 @@ docker compose -f docker-compose.kvrocks.yml up -d
 4. 变量名: `DB`
 5. 选择你刚创建的数据库
 
-#### 第四步：添加环境变量
+**第四步：添加环境变量**
 
 在环境变量中追加：
 
@@ -700,7 +800,43 @@ docker compose -f docker-compose.kvrocks.yml up -d
 - `USERNAME`: 管理员用户名
 - `PASSWORD`: 管理员密码
 
-#### 第五步：重新部署
+#### 方式二：使用 Wrangler CLI（高级用户）
+
+**第一步：下载配置文件**
+
+```bash
+# 下载 wrangler 配置文件
+curl -O https://raw.githubusercontent.com/katelya77/KatelyaTV/main/wrangler.toml
+curl -O https://raw.githubusercontent.com/katelya77/KatelyaTV/main/.env.cloudflare.example
+
+# 复制环境变量模板
+cp .env.cloudflare.example .env.local
+```
+
+**第二步：创建 D1 数据库**
+
+```bash
+# 安装 Wrangler CLI
+npm install -g wrangler
+
+# 登录 Cloudflare
+wrangler login
+
+# 创建 D1 数据库
+wrangler d1 create katelyatv-db
+
+# 初始化数据库表
+wrangler d1 execute katelyatv-db --file=./scripts/d1-init.sql
+```
+
+**第三步：部署**
+
+```bash
+# 部署到 Cloudflare Pages
+wrangler pages deploy
+```
+
+**第五步：重新部署**
 
 重新部署后，你就可以：
 
@@ -1176,8 +1312,8 @@ echo $UPSTASH_TOKEN  # 应该是长字符串令牌
 | ANNOUNCEMENT                | 站点公告                                                    | 任意字符串                       | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
 | NEXT_PUBLIC_STORAGE_TYPE    | 播放记录/收藏的存储方式                                     | localstorage、redis、d1、upstash | localstorage                                                                                                               |
 | REDIS_URL                   | redis 连接 url，若 NEXT_PUBLIC_STORAGE_TYPE 为 redis 则必填 | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_URL                 | upstash redis 连接 url                                      | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_TOKEN               | upstash redis 连接 token                                    | 连接 token                       | 空                                                                                                                         |
+| UPSTASH_URL                 | upstash redis 连接 url（REST API）                          | 连接 url                         | 空                                                                                                                         |
+| UPSTASH_TOKEN               | upstash redis 连接 token（REST API）                        | 连接 token                       | 空                                                                                                                         |
 | NEXT_PUBLIC_ENABLE_REGISTER | 是否开放注册，仅在非 localstorage 部署时生效                | true / false                     | false                                                                                                                      |
 | NEXT_PUBLIC_SEARCH_MAX_PAGE | 搜索接口可拉取的最大页数                                    | 1-50                             | 5                                                                                                                          |
 | NEXT_PUBLIC_IMAGE_PROXY     | 默认的浏览器端图片代理                                      | url prefix                       | (空)                                                                                                                       |
@@ -1399,7 +1535,7 @@ KatelyaTV 支持标准的苹果 CMS V10 API 格式。
 
 **📂 配置文件下载链接**: [https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file](https://www.mediafire.com/file/xl3yo7la2ci378w/config.json/file)
 
-**📂 配置文件Plus下载地址**: [配置文件Plus版本【94片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
+**📂 配置文件 Plus 下载地址**: [配置文件 Plus 版本【94 片源】](https://www.mediafire.com/file/fbpk1mlupxp3u3v/configplus.json/file)
 
 ### ✨ 配置文件特点
 
@@ -1407,6 +1543,104 @@ KatelyaTV 支持标准的苹果 CMS V10 API 格式。
 - ⚡ **响应速度优化**：优选响应快速的资源接口
 - 🎬 **内容丰富**：覆盖电影、电视剧、综艺、动漫等多种类型
 - 🔄 **定期更新**：我们会根据可用性定期更新推荐配置
+
+---
+
+## 🛠️ 故障排除
+
+### 🐳 Docker 部署问题
+
+#### Docker + Kvrocks 认证错误
+
+如果遇到以下错误：
+
+```
+❌ Kvrocks Client Error: [Error]: ERR Client sent AUTH, but no password is set
+```
+
+**解决方案**：这是密码配置不一致导致的，请参考 [Kvrocks 修复报告](./KVROCKS_FIX_REPORT.md) 获取详细解决方案。
+
+**快速修复步骤**：
+
+1. 选择正确的部署配置：
+   - 无密码部署：`docker-compose.kvrocks.yml`
+   - 密码认证部署：`docker-compose.kvrocks.auth.yml`
+2. 正确配置环境变量中的 `KVROCKS_PASSWORD`
+3. 重新启动服务
+
+#### 其他 Docker 问题
+
+| 问题                   | 可能原因         | 解决方案                       |
+| ---------------------- | ---------------- | ------------------------------ |
+| 端口冲突 (port in use) | 3000 端口被占用  | 修改端口映射 `-p 3001:3000`    |
+| 连接超时               | 防火墙阻止访问   | 开放 3000 端口或检查防火墙设置 |
+| 镜像拉取失败           | 网络问题         | 使用代理或更换 Docker 镜像源   |
+| 容器启动失败           | 环境变量配置错误 | 检查环境变量格式和必填项       |
+
+### ☁️ 云平台部署问题
+
+#### Vercel 部署问题
+
+| 问题           | 解决方案                                |
+| -------------- | --------------------------------------- |
+| 构建失败       | 检查环境变量设置，确认 Node.js 版本兼容 |
+| 函数超时       | 检查是否为 Edge Runtime 兼容性问题      |
+| 环境变量不生效 | 重新部署，确认变量名拼写正确            |
+
+#### Cloudflare Pages 问题
+
+| 问题              | 解决方案                                     |
+| ----------------- | -------------------------------------------- |
+| D1 数据库连接失败 | 检查数据库绑定和初始化 SQL                   |
+| 构建失败          | 确认 `pages:build` 脚本配置正确              |
+| 权限错误          | 检查 Cloudflare 账户权限和 D1 数据库访问权限 |
+
+### 🔍 调试工具
+
+#### 配置检查脚本
+
+```bash
+# 检查所有部署配置文件
+node scripts/check-deployment-configs.js
+
+# 测试 Kvrocks 连接
+node scripts/test-kvrocks-deployment.js
+
+# 验证 Kvrocks 密码修复
+node scripts/verify-kvrocks-fix.js
+```
+
+#### 日志查看
+
+```bash
+# Docker 日志
+docker logs katelyatv
+docker-compose logs -f
+
+# Vercel 日志
+vercel logs
+
+# Cloudflare Pages 日志
+# 在 Cloudflare Dashboard 中查看构建日志
+```
+
+### 📖 详细文档
+
+- [Kvrocks 部署指南](./docs/KVROCKS_DEPLOYMENT.md) - 完整的 Kvrocks 部署教程
+- [Kvrocks 修复报告](./KVROCKS_FIX_REPORT.md) - 密码认证问题修复详情
+- [TVBox 配置指南](./docs/TVBOX.md) - TVBox 兼容功能说明
+- [D1 迁移指南](./D1_MIGRATION.md) - Cloudflare D1 数据库升级说明
+
+### 🆘 获取帮助
+
+如果上述方案都无法解决问题：
+
+1. **检查日志**：查看应用和数据库的详细日志
+2. **运行诊断**：使用提供的测试脚本进行诊断
+3. **社区支持**：在 GitHub Issues 中描述问题和环境信息
+4. **文档查阅**：参考相关部署方案的详细文档
+
+---
 
 ### 🛡️ 使用声明
 
